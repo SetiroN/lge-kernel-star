@@ -40,7 +40,50 @@
 #include "nvrm_memmgr.h"
 #include "ap15/ap15rm_private.h"
 #include "ap15/project_relocation_table.h"
+#include <linux/ironkrnl.h>
 
+#ifdef USE_FAKE_SHMOO
+#include <linux/kernel.h>
+
+/* 
+ * TEGRA AP20 CPU OC/UV Hack by Cpasjuste @ https://github.com/Cpasjuste/android_kernel_lg_p990
+ * Improved by Benee
+ */
+
+#define MAX_OVERCLOCK (1504000)
+
+NvRmCpuShmoo fake_CpuShmoo; // Pointer to fake CpuShmoo values
+NvU32 FakeShmooVmaxIndex = 7; // Max voltage index in the voltage tab (size-1)
+
+NvU32 FakeShmooVoltages[] = {
+    775,
+    800,
+    825,
+    900,
+    1000,
+    1075,
+    1250,
+    1350,
+};
+
+NvRmScaledClkLimits FakepScaledCpuLimits = {
+    101, // FakepScaledCpuLimits.HwDeviceId
+    0, // FakepScaledCpuLimits.SubClockId
+    32, // FakepScaledCpuLimits.MinKHz
+    // Clock table
+    {
+	216000,
+    	503000,
+    	655000,
+    	912000,
+    	1100000,
+	1312000,
+	1408000,
+	1504000,
+    }
+};
+
+#endif // USE_FAKE_SHMOO
 
 #define NvRmPrivGetStepMV(hRmDevice, step) \
          (s_ChipFlavor.pSocShmoo->ShmooVoltages[(step)])
@@ -142,16 +185,7 @@ NvRmPrivClockLimitsInit(NvRmDeviceHandle hRmDevice)
     // Combine AVP/System clock absolute limit with scaling V/F ladder upper
     // boundary, and set default clock range for all present modules the same
     // as for AVP/System clock
-    AvpMaxKHz = pSKUedLimits->AvpMaxKHz;
-    for (i = 0; i < pShmoo->ScaledLimitsListSize; i++)
-    {
-        if (pHwLimits[i].HwDeviceId == NV_DEVID_AVP)
-        {
-            AvpMaxKHz = NV_MIN(
-                AvpMaxKHz, pHwLimits[i].MaxKHzList[pShmoo->ShmooVmaxIndex]);
-            break;
-        }
-    }
+	AvpMaxKHz = VORK_AVP_FREQ ;
 
     for (i = 0; i < NvRmPrivModuleID_Num; i++)
     {
@@ -189,6 +223,17 @@ NvRmPrivClockLimitsInit(NvRmDeviceHandle hRmDevice)
             s_pClockScales[id] = pHwLimits[i].MaxKHzList;
         }
     }
+
+        NvOsDebugPrintf(
+        "avp khz before:%d\n",
+        s_ClockRangeLimits[NvRmModuleID_Avp].MaxKHz);
+
+
+s_ClockRangeLimits[2].MaxKHz = VORK_AVP_FREQ ;
+s_ClockRangeLimits[7].MaxKHz = VORK_DDR_FREQ ;
+s_ClockRangeLimits[8].MaxKHz = VORK_GPU_FREQ ;
+s_ClockRangeLimits[10].MaxKHz = VORK_DDR_FREQ ;
+
     // Fill in CPU scaling data if SoC has dedicated CPU rail, and CPU clock
     // characterization data is separated from other modules on common core rail
     if (s_ChipFlavor.pCpuShmoo)
@@ -203,11 +248,26 @@ NvRmPrivClockLimitsInit(NvRmDeviceHandle hRmDevice)
         s_pClockScales[NvRmModuleID_Cpu] = pCpuLimits->MaxKHzList;
     }
 
+NvOsDebugPrintf("s_ClockRangeLimits[%d].MaxKHz = %d", NvRmModuleID_Cpu, s_ClockRangeLimits[NvRmModuleID_Cpu].MaxKHz );
+
     // Set AVP upper clock boundary with combined Absolute/Scaled limit;
     // Sync System clock with AVP (System is not in relocation table)
-    s_ClockRangeLimits[NvRmModuleID_Avp].MaxKHz = AvpMaxKHz;
-    s_ClockRangeLimits[NvRmPrivModuleID_System].MaxKHz =
-        s_ClockRangeLimits[NvRmModuleID_Avp].MaxKHz;
+	NvOsDebugPrintf(
+	"system khz before:%d\n",
+	s_ClockRangeLimits[NvRmPrivModuleID_System].MaxKHz);
+
+    s_ClockRangeLimits[NvRmModuleID_Avp].MaxKHz = VORK_AVP_FREQ ;
+
+        NvOsDebugPrintf(
+        "avp khz after:%d\n",
+        s_ClockRangeLimits[NvRmModuleID_Avp].MaxKHz);
+
+    s_ClockRangeLimits[NvRmPrivModuleID_System].MaxKHz = VORK_SYSTEM_FREQ ;
+
+        NvOsDebugPrintf(
+        "system khz after:%d\n",
+        s_ClockRangeLimits[NvRmPrivModuleID_System].MaxKHz);
+
     s_ClockRangeLimits[NvRmPrivModuleID_System].MinKHz =
         s_ClockRangeLimits[NvRmModuleID_Avp].MinKHz;
     s_pClockScales[NvRmPrivModuleID_System] = s_pClockScales[NvRmModuleID_Avp];
@@ -215,27 +275,33 @@ NvRmPrivClockLimitsInit(NvRmDeviceHandle hRmDevice)
     // Set VDE upper clock boundary with combined Absolute/Scaled limit (on
     // AP15/Ap16 VDE clock derived from the system bus, and VDE maximum limit
     // must be the same as AVP/System).
-    VdeMaxKHz = pSKUedLimits->VdeMaxKHz;
-    VdeMaxKHz = NV_MIN(
-        VdeMaxKHz, s_ClockRangeLimits[NvRmModuleID_Vde].MaxKHz);
-    if ((hRmDevice->ChipId.Id == 0x15) || (hRmDevice->ChipId.Id == 0x16))
-    {
-        NV_ASSERT(VdeMaxKHz == AvpMaxKHz);
-    }
+
+        NvOsDebugPrintf(
+        "vde khz before:%d\n",
+        s_ClockRangeLimits[NvRmModuleID_Vde].MaxKHz);
+
+    VdeMaxKHz = VORK_VDE_FREQ ;
+    NV_ASSERT(VdeMaxKHz == AvpMaxKHz);
     s_ClockRangeLimits[NvRmModuleID_Vde].MaxKHz = VdeMaxKHz;
+
+        NvOsDebugPrintf(
+	"vde khz after:%d\n",
+	s_ClockRangeLimits[NvRmModuleID_Vde].MaxKHz);
 
     // Set upper clock boundaries for devices on CPU bus (CPU, Mselect,
     // CMC) with combined Absolute/Scaled limits
+#ifdef USE_FAKE_SHMOO
+	CpuMaxKHz = MAX_OVERCLOCK;
+#else
     CpuMaxKHz = pSKUedLimits->CpuMaxKHz;
     CpuMaxKHz = NV_MIN(
         CpuMaxKHz, s_ClockRangeLimits[NvRmModuleID_Cpu].MaxKHz);
+#endif
     s_ClockRangeLimits[NvRmModuleID_Cpu].MaxKHz = CpuMaxKHz;
     if ((hRmDevice->ChipId.Id == 0x15) || (hRmDevice->ChipId.Id == 0x16))
     {
         s_ClockRangeLimits[NvRmModuleID_CacheMemCtrl].MaxKHz = CpuMaxKHz;
         s_ClockRangeLimits[NvRmPrivModuleID_Mselect].MaxKHz = CpuMaxKHz;
-        NV_ASSERT(s_ClockRangeLimits[NvRmClkLimitsExtID_ClkSrc].MaxKHz >=
-                  CpuMaxKHz);
     }
     else if (hRmDevice->ChipId.Id == 0x20)
     {
@@ -250,20 +316,19 @@ NvRmPrivClockLimitsInit(NvRmDeviceHandle hRmDevice)
     // Fill in memory controllers absolute range (scaled data is on ODM level)
     s_ClockRangeLimits[NvRmPrivModuleID_MemoryController].MaxKHz =
         pSKUedLimits->McMaxKHz;
-    s_ClockRangeLimits[NvRmPrivModuleID_ExternalMemoryController].MaxKHz =
-        pSKUedLimits->Emc2xMaxKHz;
+    s_ClockRangeLimits[NvRmPrivModuleID_ExternalMemoryController].MaxKHz = VORK_EMC2_FREQ ;
     s_ClockRangeLimits[NvRmPrivModuleID_ExternalMemoryController].MinKHz =
         NVRM_SDRAM_MIN_KHZ * 2;
-    s_ClockRangeLimits[NvRmPrivModuleID_ExternalMemory].MaxKHz =
-        pSKUedLimits->Emc2xMaxKHz / 2;
+    s_ClockRangeLimits[NvRmPrivModuleID_ExternalMemory].MaxKHz = VORK_DDR_FREQ ;
     s_ClockRangeLimits[NvRmPrivModuleID_ExternalMemory].MinKHz =
         NVRM_SDRAM_MIN_KHZ;
 
     // Set 3D upper clock boundary with combined Absolute/Scaled limit.
-    TDMaxKHz = pSKUedLimits->TDMaxKHz;
-    TDMaxKHz = NV_MIN(
-        TDMaxKHz, s_ClockRangeLimits[NvRmModuleID_3D].MaxKHz);
-    s_ClockRangeLimits[NvRmModuleID_3D].MaxKHz = TDMaxKHz;
+    s_ClockRangeLimits[NvRmModuleID_3D].MaxKHz = VORK_GPU_FREQ ;
+
+   NvOsDebugPrintf(
+   "gpukhz:%d\n",
+   s_ClockRangeLimits[NvRmModuleID_3D].MaxKHz);
 
     // Set Display upper clock boundary with combined Absolute/Scaled limit.
     // (fill in clock limits for both display heads)
@@ -380,12 +445,21 @@ NvRmPrivModuleVscaleGetMV(
     // Use CPU specific voltage ladder if SoC has dedicated CPU rail
     if (s_ChipFlavor.pCpuShmoo && (Module == NvRmModuleID_Cpu))
     {
+#ifdef USE_FAKE_SHMOO
+        for (i = 0; i < fake_CpuShmoo.ShmooVmaxIndex; i++)
+        {
+            if (FreqKHz <= pScale[i])
+                break;
+        }
+        return fake_CpuShmoo.ShmooVoltages[i];
+#else
         for (i = 0; i < s_ChipFlavor.pCpuShmoo->ShmooVmaxIndex; i++)
         {
             if (FreqKHz <= pScale[i])
                 break;
         }
         return s_ChipFlavor.pCpuShmoo->ShmooVoltages[i];
+#endif
     }
     // Use common ladder for all other modules or CPU on core rail
     for (i = 0; i < s_ChipFlavor.pSocShmoo->ShmooVmaxIndex; i++)
@@ -407,7 +481,11 @@ NvRmPrivModuleVscaleGetMaxKHzList(
 
     // Use CPU specific voltage ladder if SoC has dedicated CPU rail
     if (s_ChipFlavor.pCpuShmoo && (Module == NvRmModuleID_Cpu))
+#ifdef USE_FAKE_SHMOO
+        *pListSize = fake_CpuShmoo.ShmooVmaxIndex + 1;
+#else
         *pListSize = s_ChipFlavor.pCpuShmoo->ShmooVmaxIndex + 1;
+#endif
     else
         *pListSize = s_ChipFlavor.pSocShmoo->ShmooVmaxIndex + 1;
 
@@ -736,6 +814,7 @@ NvRmPrivGetOscDoublerTaps(
 NvBool NvRmPrivIsCpuRailDedicated(NvRmDeviceHandle hRmDevice)
 {
     const NvRmCpuShmoo* p = s_ChipFlavor.pCpuShmoo;
+
     return (p != NULL);
 }
 
@@ -890,6 +969,14 @@ static NvError NvRmBootArgChipShmooGet(
         // Shmoo data for dedicated CPU domain
         pChipFlavor->pCpuShmoo = &s_CpuShmoo;
 
+#ifdef USE_FAKE_SHMOO
+        s_CpuShmoo.ShmooVoltages = &FakeShmooVoltages[0];
+	s_CpuShmoo.ShmooVmaxIndex = FakeShmooVmaxIndex;
+        s_CpuShmoo.pScaledCpuLimits = &FakepScaledCpuLimits;
+	fake_CpuShmoo.ShmooVoltages = &FakeShmooVoltages[0];
+	fake_CpuShmoo.ShmooVmaxIndex = FakeShmooVmaxIndex;
+        fake_CpuShmoo.pScaledCpuLimits = &FakepScaledCpuLimits;
+#else
         offset = BootArgSh.CpuShmooVoltagesListOffset;
         size = BootArgSh.CpuShmooVoltagesListSize;
         NV_ASSERT (offset + size <= TotalSize);
@@ -905,6 +992,7 @@ static NvError NvRmBootArgChipShmooGet(
         s_CpuShmoo.pScaledCpuLimits =
             (const NvRmScaledClkLimits*)((NvUPtr)s_pShmooData + offset);
         NV_ASSERT(size == sizeof(*s_CpuShmoo.pScaledCpuLimits));
+#endif
     }
     else
     {

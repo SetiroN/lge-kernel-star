@@ -34,6 +34,7 @@
 #include <linux/workqueue.h>
 #include <linux/smp_lock.h>
 #include <linux/suspend.h>
+#include <linux/ironkrnl.h>
 // 20100728 related deepsleep wakeup delay, (NVIDIA john moser) [START]
 #include <linux/delay.h>
 // 20100728  related deepsleep wakeup delay, (NVIDIA john moser) [END]
