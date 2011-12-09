@@ -13,6 +13,9 @@
 #include <linux/utsrelease.h>
 #include <linux/version.h>
 
+#define LINUX_COMPILE_BY "iron"
+#define LINUX_COMPILE_HOST "krnL"
+
 #ifndef CONFIG_KALLSYMS
 #define version(a) Version_ ## a
 #define version_string(a) version(a)
@@ -38,10 +41,10 @@ EXPORT_SYMBOL_GPL(init_uts_ns);
 
 /* FIXED STRINGS! Don't touch! */
 const char linux_banner[] =
-	"Linux version " UTS_RELEASE " (" LINUX_COMPILE_BY "@"
+	"Linux version " UTS_RELEASE " (" LINUX_COMPILE_BY 
 	LINUX_COMPILE_HOST ") (" LINUX_COMPILER ") " UTS_VERSION "\n";
 
 const char linux_proc_banner[] =
 	"%s version %s"
-	" (" LINUX_COMPILE_BY "@" LINUX_COMPILE_HOST ")"
-	" (" LINUX_COMPILER ") %s\n";
+	" (" LINUX_COMPILE_BY  LINUX_COMPILE_HOST ""
+	" (" LINUX_COMPILER " %s\n";
