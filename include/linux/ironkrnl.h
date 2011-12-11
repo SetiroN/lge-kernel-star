@@ -18,9 +18,9 @@
 
 #define IRON_BOOT_CLOCK 1312000
 
-#define IRONVOLT_216 775
-#define IRONVOLT_503 800
-#define IRONVOLT_655 825
+#define IRONVOLT_216 800
+#define IRONVOLT_503 825
+#define IRONVOLT_655 850
 #define IRONVOLT_912 900
 #define IRONVOLT_1100 1000
 #define IRONVOLT_1312 1075
@@ -47,5 +47,5 @@
 #define sysctl_sched_wakeup_granularity_default 1000000UL
 #define normalized_sysctl_sched_wakeup_granularity_default 1000000UL
 #define CFS_BOOST
-#define CFS_BOOST_NICE -19
+#define CFS_BOOST_NICE -17
 
