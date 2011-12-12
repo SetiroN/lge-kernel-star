@@ -14,7 +14,7 @@
 #include <linux/version.h>
 
 #define LINUX_COMPILE_BY "iron"
-#define LINUX_COMPILE_HOST "krnL"
+#define LINUX_COMPILE_HOST "krnL-S"
 
 #ifndef CONFIG_KALLSYMS
 #define version(a) Version_ ## a
