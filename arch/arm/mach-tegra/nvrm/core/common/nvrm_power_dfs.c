@@ -51,10 +51,10 @@
 #include "ap15/ap15rm_clocks.h"
 #include "ap20/ap20rm_power_dfs.h"
 #include "ap20/ap20rm_clocks.h"
-#include <linux/ironkrnl.h>
 
 #ifdef USE_FAKE_SHMOO
 #include <linux/kernel.h>
+#include <linux/ironkrnl.h>
 
 /* 
  * TEGRA AP20 CPU OC/UV Hack by Cpasjuste @ https://github.com/Cpasjuste/android_kernel_lg_p990
@@ -835,7 +835,7 @@ static void DfsParametersInit(NvRmDfs* pDfs)
     }
 #ifdef USE_FAKE_SHMOO
 	// Set maximum scaling frequency to 1000mhz at boot
-	pDfs->HighCornerKHz.Domains[NvRmDfsClockId_Cpu] = IRON_BOOT_CLOCK ;
+	pDfs->HighCornerKHz.Domains[NvRmDfsClockId_Cpu] = 1312000 ;
 #endif
     pDfs->CpuCornersShadow.MinKHz =
         pDfs->LowCornerKHz.Domains[NvRmDfsClockId_Cpu];
