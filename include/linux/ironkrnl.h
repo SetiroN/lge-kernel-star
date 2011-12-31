@@ -6,7 +6,7 @@
 #define IRON_AVP_FREQ 240000
 #define IRON_VDE_FREQ IRON_AVP_FREQ
 #define IRON_SYSTEM_FREQ IRON_AVP_FREQ
-#define IRON_EMC_VOLT 1200
+#define IRON_EMC_VOLT 1150
 #define IRON_GPU_FREQ 400000
 #define IRON_EMC2_FREQ ( IRON_VDE_FREQ * 5 / 2 )
 #define IRON_DDR_FREQ ( IRON_EMC2_FREQ / 2 )
@@ -18,10 +18,10 @@
 
 #define IRON_BOOT_CLOCK 1312000
 
-#define IRONVOLT_216 775
+#define IRONVOLT_216 750
 #define IRONVOLT_503 800
 #define IRONVOLT_655 825
-#define IRONVOLT_912 850
+#define IRONVOLT_912 875
 #define IRONVOLT_1100 975
 #define IRONVOLT_1312 1075
 #define IRONVOLT_1408 1175
@@ -33,8 +33,8 @@
 #define vm_dirty_ratio_default 70
 #define dirty_background_ratio_default 40
 #define inactive_file_ratio_default 20
-#define vfs_cache_pressure 15
-#define default_swappiness 20
+#define vfs_cache_pressure 10000
+#define default_swappiness 60
 #define VM_MAX_READAHEAD 32
 #define VM_MIN_READAHEAD 16
 
