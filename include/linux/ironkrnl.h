@@ -30,11 +30,11 @@
 #define USE_FAKE_SHMOO
 
 // /mm
-#define dirty_background_ratio_default 10
-#define vm_dirty_ratio_default 10
+#define vm_dirty_ratio_default 70
+#define dirty_background_ratio_default 40
 #define inactive_file_ratio_default 20
-#define vfs_cache_pressure 25
-#define default_swappiness 8
+#define vfs_cache_pressure 15
+#define default_swappiness 20
 #define VM_MAX_READAHEAD 32
 #define VM_MIN_READAHEAD 16
 

@@ -43,7 +43,7 @@ CONFIG_HAVE_KERNEL_XZ=y
 # CONFIG_KERNEL_BZIP2 is not set
 # CONFIG_KERNEL_LZMA is not set
 CONFIG_KERNEL_XZ=y
-# CONFIG_SWAP is not set
+CONFIG_SWAP=y
 # CONFIG_SYSVIPC is not set
 # CONFIG_POSIX_MQUEUE is not set
 # CONFIG_BSD_PROCESS_ACCT is not set
@@ -1610,7 +1610,7 @@ CONFIG_ANDROID_LOW_MEMORY_KILLER=y
 #
 # CONFIG_RAR_REGISTER is not set
 # CONFIG_IIO is not set
-# CONFIG_ZRAM is not set
+CONFIG_ZRAM=y
 
 #
 # File systems
