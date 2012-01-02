@@ -6,7 +6,7 @@
 #define IRON_AVP_FREQ 240000
 #define IRON_VDE_FREQ IRON_AVP_FREQ
 #define IRON_SYSTEM_FREQ IRON_AVP_FREQ
-#define IRON_EMC_VOLT 1150
+#define IRON_EMC_VOLT 1200
 #define IRON_GPU_FREQ 400000
 #define IRON_EMC2_FREQ ( IRON_VDE_FREQ * 5 / 2 )
 #define IRON_DDR_FREQ ( IRON_EMC2_FREQ / 2 )
@@ -30,11 +30,11 @@
 #define USE_FAKE_SHMOO
 
 // /mm
-#define vm_dirty_ratio_default 70
-#define dirty_background_ratio_default 40
+#define vm_dirty_ratio_default 50
+#define dirty_background_ratio_default 30
 #define inactive_file_ratio_default 20
 #define vfs_cache_pressure 10000
-#define default_swappiness 60
+#define default_swappiness 75
 #define VM_MAX_READAHEAD 32
 #define VM_MIN_READAHEAD 16
 
