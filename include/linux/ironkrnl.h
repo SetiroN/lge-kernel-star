@@ -34,7 +34,7 @@
 #define dirty_background_ratio_default 30
 #define inactive_file_ratio_default 20
 #define vfs_cache_pressure 10000
-#define default_swappiness 75
+#define default_swappiness 100
 #define VM_MAX_READAHEAD 32
 #define VM_MIN_READAHEAD 16
 
