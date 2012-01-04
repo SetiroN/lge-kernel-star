@@ -1,6 +1,7 @@
 /* ironkrnL Tweak File */
 
 #define RAMHACK64
+#define USE_FAKE_SHMOO
 
 // Overclock
 #define IRON_AVP_FREQ 240000
@@ -27,7 +28,7 @@
 #define IRONVOLT_1408 1175
 #define IRONVOLT_1504 1275
 
-#define USE_FAKE_SHMOO
+#define max_screenoff_frequency 503000
 
 // /mm
 #define vm_dirty_ratio_default 50
