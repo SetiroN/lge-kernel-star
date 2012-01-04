@@ -1610,7 +1610,7 @@ CONFIG_ANDROID_LOW_MEMORY_KILLER=y
 #
 # CONFIG_RAR_REGISTER is not set
 # CONFIG_IIO is not set
-CONFIG_ZRAM=y
+CONFIG_ZRAM=m
 
 #
 # File systems
