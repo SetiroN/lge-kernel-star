@@ -19,7 +19,7 @@
 
 #define IRON_BOOT_CLOCK 1312000
 
-#define IRONVOLT_216 750
+#define IRONVOLT_216 775
 #define IRONVOLT_503 775
 #define IRONVOLT_655 800
 #define IRONVOLT_912 850
@@ -34,7 +34,7 @@
 #define vm_dirty_ratio_default 50
 #define dirty_background_ratio_default 30
 #define inactive_file_ratio_default 20
-#define vfs_cache_pressure 10000
+#define vfs_cache_pressure 100000
 #define default_swappiness 99
 #define VM_MAX_READAHEAD 32
 #define VM_MIN_READAHEAD 16
